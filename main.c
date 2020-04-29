@@ -24,7 +24,18 @@ void printAndGetFromCmd() {
 void divideToCommands() {
     //Dividing into commands and putting it in the 'commands' array
     token = strtok(msg, " ");
+    char newToken[100];
     while (token != NULL) {
+        if (token[0]=='"'){
+            token++;
+         //   strcpy(newToken,token);
+          //  token=newToken;
+        }
+        if (token[strlen(token)-1]=='"'){
+
+            strncpy(newToken,token,strlen(token)-1);
+            strcpy(token,newToken);
+        }
         commands[countTokens] = token;
         countTokens++;
         token = strtok(NULL, " ");
@@ -122,9 +133,7 @@ void backgroundProcess() {
 }
 
 void foregroundProcess() {
-    if (strcmp(commands[0],"echo")==0){
 
-    }
     if ((pid = fork()) == 0) {
         //child
         isChild = true;
