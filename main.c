@@ -26,15 +26,15 @@ void divideToCommands() {
     token = strtok(msg, " ");
     char newToken[100];
     while (token != NULL) {
-        if (token[0]=='"'){
+        if (token[0] == '"') {
             token++;
-         //   strcpy(newToken,token);
-          //  token=newToken;
+            //   strcpy(newToken,token);
+            //  token=newToken;
         }
-        if (token[strlen(token)-1]=='"'){
+        if (token[strlen(token) - 1] == '"') {
 
-            strncpy(newToken,token,strlen(token)-1);
-            strcpy(token,newToken);
+            strncpy(newToken, token, strlen(token) - 1);
+            strcpy(token, newToken);
         }
         commands[countTokens] = token;
         countTokens++;
@@ -50,10 +50,8 @@ void historyCommand() {
         allPids[countPids] = getpid();
         countPids++;
 
-        printf("number of processes: %d\n", countPids);
-
         for (i = 0; i < countPids; i++) {
-            if ((kill(allPids[i], 0)) != 0) {
+            if ((kill(allPids[i], 0)) != 0 || strstr(history[i], "cd") != NULL) {
                 printf("%d %s DONE\n", allPids[i], history[i]);
             } else {
                 printf("%d %s RUNNING\n", allPids[i], history[i]);
@@ -69,7 +67,7 @@ void jobsCommand() {
     if ((pid = fork()) == 0) {
         isChild = true;
         for (i = 0; i < countPids; i++) {
-            if ((kill(allPids[i], 0)) == 0) {
+            if ((kill(allPids[i], 0)) == 0 && strstr(history[i], "cd") == NULL) {
                 printf("%d %s\n", allPids[i], history[i]);
             }
         }
@@ -93,7 +91,7 @@ void cdCommand() {
 
     if (commands[2] != NULL) {
         fprintf(stderr, "Error: Too many arguments\n");
-    }else if (strcmp(commands[1], "..") == 0) {
+    } else if (strcmp(commands[1], "..") == 0) {
         /*  getcwd(path,100);
           int last = findLastSlash();
           char newPath[100];
@@ -101,7 +99,7 @@ void cdCommand() {
         getcwd(path, 100);
 
         chdir("..");
-    }else if (strcmp(commands[1], "-") == 0) {
+    } else if (strcmp(commands[1], "-") == 0) {
         chdir(path);
     } else if (strcmp(commands[1], "~") == 0) {
         getcwd(path, 100);
