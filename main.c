@@ -113,7 +113,7 @@ void backgroundProcess() {
     pid = fork();
     if(pid<0)
     {
-        fprintf(stderr, "Error in system call");
+        fprintf(stderr, "Error in system call\n");
         exit(-1);
     }else if (pid == 0) {
         //child
@@ -122,8 +122,8 @@ void backgroundProcess() {
         printf("%d", pid);//print pid
         printf("\n");
         if ((returnCode = execvp(commands[0], commands) == -1)) {
-            fprintf(stderr, "Error in system call");
-            printf("\n");
+            fprintf(stderr, "Error in system call\n");
+
         }
     }
 }
@@ -138,11 +138,10 @@ void foregroundProcess() {
         //child
         isChild = true;
         pid = getpid();
-        printf("%d", pid);
-        printf("\n");
+        printf("%d\n", pid);
+
         if ((returnCode = execvp(commands[0], commands) == -1)) {
-            fprintf(stderr, "Error in system call");
-            printf("\n");
+            fprintf(stderr, "Error in system call\n");
         }
     } else {
         wait(&returnCode);
