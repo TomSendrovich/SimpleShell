@@ -4,8 +4,9 @@
 #include <unistd.h>
 #include <wait.h>
 #include <stdlib.h>
+#include <pwd.h>
 
-char msg[100], path[100];
+char msg[100], path[100] = {NULL};
 __pid_t pid = -2, allPids[100], parentPID;
 int countTokens = 0, countPids = 0, returnCode;
 char *commands[10], *token = NULL;
@@ -14,15 +15,16 @@ char *msgSave;
 bool isChild = false;
 
 void printAndGetFromCmd() {
+    sleep(0.2);
     printf("> ");
     gets(msg);
-    // printf("my PID is: %d. status: %d (scan)\n", getpid(), kill(getpid(), 0));
     msgSave = (char *) malloc((strlen(msg) + 1) * sizeof(char));
     strcpy(msgSave, msg);
 }
 
+//Dividing into commands and putting it in the 'commands' array
 void divideToCommands() {
-    //Dividing into commands and putting it in the 'commands' array
+
     token = strtok(msg, " ");
     char newToken[100];
     while (token != NULL) {
@@ -76,34 +78,26 @@ void jobsCommand() {
     }
 }
 
-int findLastSlash() {
-    int i = 0, last = 0;
-    while (path[i] != '\0') {
-        if (path[i] == '/') {
-            last = i;
-        }
-        i++;
-    }
-    return last;
-}
-
 void cdCommand() {
-
+    pid = getpid();
+    printf("%d\n", pid);
     if (commands[2] != NULL) {
         fprintf(stderr, "Error: Too many arguments\n");
     } else if (strcmp(commands[1], "..") == 0) {
-        /*  getcwd(path,100);
-          int last = findLastSlash();
-          char newPath[100];
-          strncpy(newPath,path,last);*/
         getcwd(path, 100);
-
         chdir("..");
     } else if (strcmp(commands[1], "-") == 0) {
-        chdir(path);
+        if (path[0]=='\0'){
+            fprintf(stderr,"OLDPWD not set\n");
+        } else{
+            chdir(path);
+        }
+
     } else if (strcmp(commands[1], "~") == 0) {
         getcwd(path, 100);
-        chdir("/home");
+        struct passwd *pw = getpwuid(getuid());
+        const char *homedir = pw->pw_dir;
+        chdir(homedir);
     } else if (chdir(commands[1]) != 0) {
         fprintf(stderr, "Error: No such file or directory\n");
     } else {
@@ -111,35 +105,43 @@ void cdCommand() {
         chdir(commands[1]);
     }
 
-    pid = getpid();
-    printf("%d\n", pid);
+
 }
 
 void backgroundProcess() {
     commands[countTokens - 1] = NULL;
-    if ((pid = fork()) == 0) {
+    pid = fork();
+    if(pid<0)
+    {
+        fprintf(stderr, "Error in system call");
+        exit(-1);
+    }else if (pid == 0) {
         //child
         isChild = true;
         pid = getpid();
         printf("%d", pid);//print pid
         printf("\n");
         if ((returnCode = execvp(commands[0], commands) == -1)) {
-            printf("exec failed");
+            fprintf(stderr, "Error in system call");
             printf("\n");
         }
     }
 }
 
 void foregroundProcess() {
-
-    if ((pid = fork()) == 0) {
+    pid = fork();
+    if(pid<0)
+    {
+        fprintf(stderr, "Error in system call");
+        exit(-1);
+    }else if (pid == 0) {
         //child
         isChild = true;
         pid = getpid();
         printf("%d", pid);
         printf("\n");
         if ((returnCode = execvp(commands[0], commands) == -1)) {
-            printf("exec failed");
+            fprintf(stderr, "Error in system call");
             printf("\n");
         }
     } else {
